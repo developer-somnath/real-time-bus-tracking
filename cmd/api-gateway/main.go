@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log"
 	"real-time-bus-tracking/cmd/api-gateway/routes"
 	"real-time-bus-tracking/internal/models"
 	"real-time-bus-tracking/pkg/logger"
@@ -10,7 +9,8 @@ import (
 )
 
 func main() {
-	logger.Init()
+	log := logger.Init("api-gateway")
+	defer log.Close()
 
 	// Initialize database (for migrations, if RUN_MIGRATE=true)
 	if err := models.InitDB(); err != nil {

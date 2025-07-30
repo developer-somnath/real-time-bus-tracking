@@ -1,0 +1,12 @@
+root = "."
+tmp_dir = "../../build/tmp"
+
+[build]
+  bin = "../../build/bin/api-gateway.exe"
+  cmd = "go build -o ../../build/bin/api-gateway.exe ./main.go"
+  include_ext = ["go"]
+  exclude_dir = ["../../build", "../../migrations", "../../tests"]
+  delay = 1000
+
+[log]
+  time = true

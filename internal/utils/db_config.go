@@ -1,4 +1,4 @@
-package util
+package utils
 
 import (
 	"context"
@@ -27,7 +27,7 @@ func LoadDBConfig() DBConfig {
 	slave2Dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", os.Getenv("SLAVE_2_DB_USER"), os.Getenv("SLAVE_2_DB_PASS"), os.Getenv("SLAVE_2_DB_HOST"), os.Getenv("SLAVE_2_DB_PORT"), os.Getenv("SLAVE_2_DB_NAME"))
 	// InitDB initializes the database connection using GORM.
 	return DBConfig{
-		MaxRetries:     GetEnvInt("DB_MAX_RETRIES", 10),
+		MaxRetries:     GetEnvInt("DB_MAX_RETRIES", 5),
 		RetryBackoff:   GetEnvDuration("DB_RETRY_BACKOFF", 1000*time.Millisecond),
 		ConnectTimeout: GetEnvDuration("DB_CONN_TIMEOUT", 5000*time.Millisecond),
 		MasterDSN:      masterDsn,
