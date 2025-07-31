@@ -14,7 +14,7 @@ func main() {
 
 	// Initialize database (for migrations, if RUN_MIGRATE=true)
 	if err := models.InitDB(); err != nil {
-		log.Fatalf("Failed to initialize MySQL: %v", err)
+		log.Fatal("Failed to initialize MySQL:", err)
 	}
 
 	// Initialize Gin router
@@ -23,6 +23,6 @@ func main() {
 
 	// Run server
 	if err := r.Run(":8080"); err != nil {
-		log.Fatalf("Failed to start server: %v", err)
+		log.Fatal("Failed to start server:", err)
 	}
 }

@@ -120,7 +120,7 @@ The **real-time bus tracking system** employs an **event-driven microservice arc
 
 ## Edge Cases and Breaking Points
 - **Edge Cases**:
-  - Invalid environment variables: `helpers` uses defaults.
+  - Invalid environment variables: `utils` uses defaults.
   - Event duplication: Kafka consumer idempotency required.
   - Replica lag: `RandomPolicy` falls back to master.
 - **Breaking Points**:

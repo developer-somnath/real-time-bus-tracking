@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 type Logger struct {
@@ -23,21 +24,24 @@ func Init(serviceName string) *Logger {
 		log.Fatalf("Failed to open log file: %v", err)
 	}
 	multiWriter := io.MultiWriter(os.Stdout, file)
-	logger := log.New(multiWriter, "", log.LstdFlags|log.Lshortfile)
+	logger := log.New(multiWriter, "", log.LstdFlags)
 	logger.Printf("[INFO] Logger initialized for %s", serviceName)
 	return &Logger{Logger: logger, file: file}
 }
 
 func (l *Logger) Info(msg string, keysAndValues ...interface{}) {
-	l.Printf("[INFO] %s %v", msg, keysAndValues)
+	_, file, line, _ := runtime.Caller(1)
+	l.Printf("[INFO] %s:%d %s %v", filepath.Base(file), line, msg, keysAndValues)
 }
 
 func (l *Logger) Error(msg string, err error, keysAndValues ...interface{}) {
-	l.Printf("[ERROR] %s: %v %v", msg, err, keysAndValues)
+	_, file, line, _ := runtime.Caller(1)
+	l.Printf("[ERROR] %s:%d %s: %v %v", filepath.Base(file), line, msg, err, keysAndValues)
 }
 
 func (l *Logger) Fatal(msg string, err error, keysAndValues ...interface{}) {
-	l.Printf("[FATAL] %s: %v %v", msg, err, keysAndValues)
+	_, file, line, _ := runtime.Caller(1)
+	l.Printf("[FATAL] %s:%d %s: %v %v", filepath.Base(file), line, msg, err, keysAndValues)
 	l.file.Close()
 	os.Exit(1)
 }
