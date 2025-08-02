@@ -1,2 +1,4 @@
 2025/07/30 16:40:32 [INFO] Logger initialized for api-gateway
 2025/07/30 16:40:47 [FATAL] main.go:17 Failed to initialize MySQL:: failed to connect to MySQL after 5 retries: dial tcp :0: connectex: The requested address is not valid in its context. []
+2025/07/31 16:29:05 [INFO] Logger initialized for api-gateway
+2025/07/31 16:29:20 [FATAL] main.go:17 Failed to initialize MySQL:: failed to connect to MySQL after 5 retries: dial tcp :0: connectex: The requested address is not valid in its context. []

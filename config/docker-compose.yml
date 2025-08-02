@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  api-gateway:
+    build:
+      context: ../cmd/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - KAFKA_BROKER_ADDR=kafka:9092
+      - KAFKA_MAX_RETRIES=5
+      - KAFKA_RETRY_BACKOFF=500
+      - KAFKA_BATCH_TIMEOUT=20
+    depends_on:
+      - kafka
+    networks:
+      - bus-tracking-net
+
+  bus-service:
+    build:
+      context: ../cmd/bus-service
+      dockerfile: Dockerfile
+    environment:
+      - MASTER_DB_USER=${MASTER_DB_USER}
+      - MASTER_DB_PASS=${MASTER_DB_PASS}
+      - MASTER_DB_HOST=mysql-master
+      - MASTER_DB_PORT=3306
+      - MASTER_DB_NAME=bustracking
+      - SLAVE_1_DB_USER=${SLAVE_1_DB_USER}
+      - SLAVE_1_DB_PASS=${SLAVE_1_DB_PASS}
+      - SLAVE_1_DB_HOST=mysql-replica-1
+      - SLAVE_1_DB_PORT=3306
+      - SLAVE_1_DB_NAME=bustracking
+      - SLAVE_2_DB_USER=${SLAVE_2_DB_USER}
+      - SLAVE_2_DB_PASS=${SLAVE_2_DB_PASS}
+      - SLAVE_2_DB_HOST=mysql-replica-2
+      - SLAVE_2_DB_PORT=3306
+      - SLAVE_2_DB_NAME=bustracking
+      - MYSQL_MAX_RETRIES=5
+      - MYSQL_RETRY_BACKOFF=1000
+      - MYSQL_CONNECT_TIMEOUT=5000
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_MAX_RETRIES=5
+      - REDIS_RETRY_BACKOFF=500
+      - REDIS_CONNECT_TIMEOUT=1000
+      - KAFKA_BROKER_ADDR=kafka:9092
+      - KAFKA_MAX_RETRIES=5
+      - KAFKA_RETRY_BACKOFF=500
+      - KAFKA_BATCH_TIMEOUT=20
+      - RUN_MIGRATE=true
+    depends_on:
+      - mysql-master
+      - mysql-replica-1
+      - mysql-replica-2
+      - redis
+      - kafka
+    networks:
+      - bus-tracking-net
+
+  mysql-master:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MASTER_DB_PASS}
+      - MYSQL_DATABASE=bustracking
+    volumes:
+      - mysql-master-data:/var/lib/mysql
+      - ../migrations:/docker-entrypoint-initdb.d
+    ports:
+      - "3306:3306"
+    networks:
+      - bus-tracking-net
+
+  mysql-replica-1:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SLAVE_1_DB_PASS}
+      - MYSQL_DATABASE=bustracking
+    volumes:
+      - mysql-replica-1-data:/var/lib/mysql
+    ports:
+      - "3307:3306"
+    depends_on:
+      - mysql-master
+    networks:
+      - bus-tracking-net
+
+  mysql-replica-2:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${SLAVE_2_DB_PASS}
+      - MYSQL_DATABASE=bustracking
+    volumes:
+      - mysql-replica-2-data:/var/lib/mysql
+    ports:
+      - "3308:3306"
+    depends_on:
+      - mysql-master
+    networks:
+      - bus-tracking-net
+
+  redis:
+    image: redis:7.0
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    networks:
+      - bus-tracking-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.3.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - bus-tracking-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.3.0
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    networks:
+      - bus-tracking-net
+
+volumes:
+  mysql-master-data:
+  mysql-replica-1-data:
+  mysql-replica-2-data:
+
+networks:
+  bus-tracking-net:
+    driver: bridge
